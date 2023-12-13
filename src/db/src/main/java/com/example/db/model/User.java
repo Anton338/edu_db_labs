@@ -17,8 +17,10 @@ public class User {
     private String username;
     private String password;
     private String email;
-
-    @Column(name = "Request_id")
+    @Column(name = "request_id")
     private Long Request_id;
 
+    @ManyToOne
+   @JoinColumn(name = "datafolder_id")
+   private DataFolder dataFolder;
 }
