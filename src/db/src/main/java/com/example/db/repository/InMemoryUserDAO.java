@@ -39,9 +39,9 @@ public class InMemoryUserDAO {
     }
 
     public void deleteUser(Long id) {
-        var student = findById(id);
-        if (student != null) {
-            USERS.remove(student);
+        var user = findById(id);
+        if (user != null) {
+            USERS.remove(user);
         }
     }
 }
