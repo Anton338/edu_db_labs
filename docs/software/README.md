@@ -2,7 +2,7 @@
 
 В рамках проекту розробляється:
 
-- SQL-скрипт для створення на початкового наповнення бази даних
+## SQL-скрипт для створення на початкового наповнення бази даних
 
 ```SQL
 -- MySQL Workbench Forward Engineering
@@ -278,4 +278,352 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 ```
 
-- RESTfull сервіс для управління даними
+## RESTfull сервіс для управління даними
+
+## Model
+### User
+```java
+package com.example.db.model;
+
+
+import jakarta.persistence.*;
+import lombok.*;
+
+
+@Getter
+@Setter
+@Entity
+@Table(name = "user")
+@NoArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String username;
+    private String password;
+    private String email;
+    @Column(name = "request_id")
+    private Long Request_id;
+
+    @ManyToOne
+   @JoinColumn(name = "datafolder_id")
+   private DataFolder dataFolder;
+}
+```
+### DataFolder
+```java
+package com.example.db.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+
+import java.util.Date;
+
+
+@Setter
+@Getter
+@NoArgsConstructor
+@Entity
+@Table(name = "datafolder")
+public class DataFolder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String description;
+    private Date date;
+    private String owner;
+    private String name;
+}
+```
+## Repository
+### UserRepository
+```java
+package com.example.db.repository;
+
+import com.example.db.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    void deleteById(Long id);
+    User findUserById(Long id);
+}
+```
+### DataFolderRepository
+```java
+package com.example.db.repository;
+
+import com.example.db.model.DataFolder;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface DataFolderRepository extends JpaRepository<DataFolder, Long> {
+void deleteById(Long id);
+DataFolder findDataFolderById(Long id);
+}
+```
+## Service
+### UserService
+```java
+package com.example.db.service;
+
+import com.example.db.model.User;
+
+import java.util.List;
+
+public interface UserService {
+     List<User> findAllUser();
+
+     User saveUser(User user);
+
+     User findById(Long id);
+
+     User updateUser(User user);
+
+     void deleteUser(Long id);
+}
+```
+
+###DataFolderService
+```java
+package com.example.db.service;
+
+import com.example.db.model.DataFolder;
+
+
+import java.util.List;
+
+public interface DataFolderService {
+
+   List<DataFolder> findAllDataFolder();
+
+    DataFolder saveDataFolder(DataFolder dataFolder);
+
+    DataFolder findById(Long id);
+
+    DataFolder updateDataFolder(DataFolder dataFolder);
+
+    void deleteDataFolder(Long id);
+}
+```
+## Service.impl
+### UserServiceImpl
+```java
+package com.example.db.service.impl;
+
+import com.example.db.model.DataFolder;
+import com.example.db.model.User;
+import com.example.db.repository.DataFolderRepository;
+import com.example.db.repository.UserRepository;
+import com.example.db.service.UserService;
+import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+@Primary
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository repository;
+    private final DataFolderRepository  dataFolderRepository;
+
+    @Override
+    public List<User> findAllUser() {
+        return repository.findAll();
+    }
+
+    @Override
+    public User saveUser(User user) {
+        DataFolder dataFolder = user.getDataFolder();
+        if (dataFolder != null) {
+            if (dataFolder.getId() == null) {
+                dataFolderRepository.save(dataFolder);
+            }
+        }
+
+        return repository.save(user);
+    }
+
+    @Override
+    public User findById(Long id) {
+        return repository.findUserById(id);
+    }
+
+    @Override
+    public User updateUser(User user) {
+        return repository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+
+        repository.deleteById(id);
+    }
+}
+```
+### DataFolderServiceImpl
+```java
+package com.example.db.service.impl;
+
+
+import com.example.db.model.DataFolder;
+import com.example.db.repository.DataFolderRepository;
+import com.example.db.service.DataFolderService;
+import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+@Primary
+public class DataFolderServiceImpl implements DataFolderService {
+
+    private final DataFolderRepository repository;
+
+
+    @Override
+    public List<DataFolder> findAllDataFolder() {
+        return repository.findAll();
+    }
+
+    @Override
+    public DataFolder saveDataFolder(DataFolder dataFolder) {
+        return repository.save(dataFolder);
+    }
+
+    @Override
+    public DataFolder findById(Long id) {
+        return repository.findDataFolderById(id);
+    }
+
+    @Override
+    public DataFolder updateDataFolder(DataFolder dataFolder) {
+        return repository.save(dataFolder);
+    }
+
+    @Override
+    public void deleteDataFolder(Long id) {
+         repository.deleteById(id);
+    }
+}
+```
+## Controller
+### UserController
+```java
+package com.example.db.controller;
+
+
+import com.example.db.model.User;
+import com.example.db.service.UserService;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/user")
+@AllArgsConstructor
+public class UserController {
+
+    public final UserService service;
+
+    @GetMapping
+    public List<User> findAllUser(){
+        return service.findAllUser();
+    }
+
+    @PostMapping("save_user")
+    public String saveUser(@RequestBody User user){
+        service.saveUser(user);
+        return "User successfully saved";
+    }
+
+    @GetMapping("/{id}")
+    public User findByUser(@PathVariable Long id){
+        return service.findById(id);
+    }
+
+    @PutMapping("update_user")
+    public User updateUser(@RequestBody User user){
+        return service.updateUser(user);
+    }
+
+    @DeleteMapping("delete_user/{id}")
+    public void deleteUser(@PathVariable Long id){
+        service.deleteUser(id);
+
+    }
+}
+```
+### DataFolderController
+```java
+package com.example.db.controller;
+
+
+import com.example.db.model.DataFolder;
+import com.example.db.service.DataFolderService;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/data_folder")
+@AllArgsConstructor
+public class DataFolderController {
+
+    private final DataFolderService dataFolderService;
+    @GetMapping
+    public List<DataFolder> findAllDataFolder(){
+        return dataFolderService.findAllDataFolder();
+    }
+
+    @PostMapping("save_dataFolder")
+    public String saveDataFolder(@RequestBody DataFolder dataFolder){
+        dataFolderService.saveDataFolder(dataFolder);
+        return "DataFolder successfully saved";
+    }
+
+    @GetMapping("/{id}")
+    public DataFolder findByDataFolder(@PathVariable Long id){
+        return dataFolderService.findById(id);
+    }
+
+    @PutMapping("update_dataFolder")
+    public DataFolder updateDataFolder(@RequestBody DataFolder dataFolder){
+        return dataFolderService.updateDataFolder(dataFolder);
+    }
+
+    @DeleteMapping("delete_dataFolder/{id}")
+    public void deleteDataFolder(@PathVariable Long id){
+        dataFolderService.deleteDataFolder(id);
+
+    }
+}
+```
+## Main Class for Spring Boot Application Launch
+```java
+package com.example.db;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DbApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DbApplication.class, args);
+    }
+
+}
+```
+
+
+
