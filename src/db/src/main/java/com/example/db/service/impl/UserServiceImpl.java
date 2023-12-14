@@ -17,7 +17,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
-    private DataFolderRepository  dataFolderRepository;
+    private final DataFolderRepository  dataFolderRepository;
 
     @Override
     public List<User> findAllUser() {
