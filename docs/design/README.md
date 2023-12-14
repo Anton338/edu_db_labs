@@ -2,7 +2,7 @@
 
 В рамках проекту розробляється:
 
-- модель бізнес-об'єктів
+## Модель бізнес-об'єктів
 
 @startuml
 entity User  #190482
@@ -140,7 +140,7 @@ DataLink "1,1" -r- "0, *" DataLink_has_Data
 DataLink_has_Data "0, *" -r- "1,1" Data
 @enduml
 
-- ER-модель
+## ER-модель
 
 @startuml
 
@@ -238,6 +238,6 @@ DataLink_has_Data "0, *" --> "1,1" Data
 
 @enduml
 
-- реляційна схема
+## Реляційна схема
 
 ![relational diagram](./assets/relation_diagram.svg)
