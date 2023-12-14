@@ -53,5 +53,5 @@
 
 ###  Delete
 <p>
-    <img src="./images/delete_datafolder.png">
+    <img src="./images/dalete_datafolder.png">
 </p>
